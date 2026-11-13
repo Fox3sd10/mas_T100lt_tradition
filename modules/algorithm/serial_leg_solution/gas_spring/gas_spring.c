@@ -37,26 +37,34 @@ static float _calc_Fs(float phi_2, float phi_1, float L_0)
     return Fs_out;
 }
 
-void gas_spring_calc_left(void)
+void gas_spring_calc_left(uint8_t enable)
 {
     const observer *obs = observer_get();
     const fk       *ki  = kinematics_get_left();
     if (obs == NULL || ki == NULL) return;
+    if (!enable) {
+        gs.Fs_L = 0.0f;
+        return;
+    }
     gs.Fs_L = _calc_Fs(ki->phi_2, obs->phi_1_L, ki->L_0);
 }
 
-void gas_spring_calc_right(void)
+void gas_spring_calc_right(uint8_t enable)
 {
     const observer *obs = observer_get();
     const fk       *ki  = kinematics_get_right();
     if (obs == NULL || ki == NULL) return;
+    if (!enable) {
+        gs.Fs_R = 0.0f;
+        return;
+    }
     gs.Fs_R = _calc_Fs(ki->phi_2, obs->phi_1_R, ki->L_0);
 }
 
-void gas_spring_calc(void)
+void gas_spring_calc(uint8_t enable)
 {
-    gas_spring_calc_left();
-    gas_spring_calc_right();
+    gas_spring_calc_left(enable);
+    gas_spring_calc_right(enable);
 }
 
 const GasSpring *gas_spring_get(void)

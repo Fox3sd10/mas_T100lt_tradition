@@ -37,13 +37,18 @@ static void robot_control_task(ULONG thread_input)
     }
 }
 
-void robot_control_init(void)
+int robot_control_init(void)
 {
-    
+    UINT status;
 
     chassis_init();
 
-    tx_thread_create(&robot_control_thread, "robot_control_thread", robot_control_task, 0, robot_control_thread_stack, 1024, 30, 30,
+    status = tx_thread_create(&robot_control_thread, "robot_control_thread", robot_control_task, 0, robot_control_thread_stack, 1024, 30, 30,
                               TX_NO_TIME_SLICE, TX_AUTO_START);
+    if (status != TX_SUCCESS)
+    {
+        return -1;
+    }
 
+    return 0;
 }

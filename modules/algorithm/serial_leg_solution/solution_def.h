@@ -13,10 +13,10 @@
 #include <stdint.h>
 
 #define WHEEL_R 0.06f
-#define phi_1_offset 173.92f
-#define phi_4_offset 6.08f
+#define phi_1_offset 176.92f
+#define phi_4_offset 3.08f
 
-#define ROBOT_MASS 16.0f
+#define ROBOT_MASS 17.0f
 //观测器
 typedef struct
 {
@@ -32,16 +32,11 @@ typedef struct
     float dx_L;
     float x_R;
     float dx_R;
-    /* 机体位移估计 (KF 流水线层, 对应 luntui1 Body.dx_nofilter / Body.dx / Body.x) */
-    float kf_dx_nofilter;   /* KF 量测输入: 轮面速度 + 腿运动学项 */
-    float kf_dx;            /* KF 滤波后机体速度 (X_KF 输出) */
-    float kf_x;             /* KF 位移积分器 (等价 luntui1 KF_x) */
     float pitch;
     float dpitch;
     float roll;
     float droll;
     float yaw;
-    float dyaw;
     uint8_t initialized;
 } observer;
 
@@ -111,6 +106,11 @@ typedef struct
     float Fs_R;
 } GasSpring;
 
-
+typedef struct{
+    uint8_t GetUpState;
+    uint8_t JumpState;
+    uint8_t UpStairState;
+    uint8_t  AllSwitchState;
+}ObsState;
 
 #endif /* _SOLUTION_DEF_H_ */

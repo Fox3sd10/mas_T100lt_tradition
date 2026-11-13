@@ -63,9 +63,8 @@ void LQR_calc(float target_x, float target_dx)
     float dtheta_l = -fk_left->dtheta;
     float theta_r = -fk_right->theta;
     float dtheta_r = -fk_right->dtheta;
-    /* 位移/速度反馈换源: X_KF 滤波输出 (等价 luntui1 Body.x/Body.dx; 取负约定不变) */
-    float x = -obs->kf_x;
-    float dx = -obs->kf_dx;
+    float x = -(obs->x_L + obs->x_R)/2.0f;
+    float dx = -(obs->dx_L + obs->dx_R) / 2.0f;
 
     if (car_state_get() == STATE_BALANCE)
     {
@@ -80,14 +79,6 @@ void LQR_calc(float target_x, float target_dx)
         // 右腿控制（TL再取反正回来，Tp保持反的）
         LQR_ctrl.TR  = -(K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx) + K_r[4]*Pitch + K_r[5]*dPitch);
         LQR_ctrl.Tpr = K_r[6]*theta_r + K_r[7]*dtheta_r + K_r[8]*(x-target_x) + K_r[9]*(dx-target_dx) + K_r[10]*Pitch + K_r[11]*dPitch;
-    }
-    else if (car_state_get() == STATE_POSE_ADJUST)
-    {
-        // ========== 调姿: LQR 不参与, 轮矩/摆矩全 0 (Tp 由 pose_adjust 直接给 VMC) ==========
-        LQR_ctrl.TL  = 0.0f;
-        LQR_ctrl.TR  = 0.0f;
-        LQR_ctrl.Tpl = 0.0f;
-        LQR_ctrl.Tpr = 0.0f;
     }
     else
     {

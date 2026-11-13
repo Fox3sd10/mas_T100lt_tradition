@@ -14,20 +14,20 @@
 
 #define Fs              350.0f
 #define GAS_SPRING_FS_LIMIT 3.0f  
-#define curtine_theta2  12.26f/180.0f*PI
-#define curtine_theta1  73.74f/180.0f*PI
-#define L1              0.21f
-#define L2              0.25f
-#define L3              0.2021f
-#define L6              0.0503f
+#define curtine_theta2  13.91f/180.0f*PI
+#define curtine_theta1  73.93f/180.0f*PI
+#define L1              0.189f
+#define L2              0.225f
+#define L3              0.181f
+#define L6              0.053f
 
 #define GAS_SPRING_SIN_EPS  1e-4f
 #define GAS_SPRING_L4_EPS   1e-4f
 
 void gas_spring_init(void);
-void gas_spring_calc_left(void);
-void gas_spring_calc_right(void);
-void gas_spring_calc(void);
+void gas_spring_calc_left(uint8_t enable);
+void gas_spring_calc_right(uint8_t enable);
+void gas_spring_calc(uint8_t enable);
 const GasSpring *gas_spring_get(void);
 
 #endif
