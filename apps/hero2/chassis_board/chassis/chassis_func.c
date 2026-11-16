@@ -67,13 +67,8 @@
 static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
 static float march_displacement = 0.0f;   /* 位移目标斜坡 */
+ObsState wheeledleg_state;
 
-// static void target_update(float speed_cmd)
-// {
-//     /* 遥控位移目标: 通道值逐周期累加 (无界积分) */
-//     march_displacement += speed_cmd * 0.002f;
-//     LQR_calc(-march_displacement, 0.0f);
-// }
 
 void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd) 
 {
@@ -174,19 +169,19 @@ void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd)
     /* ========== 串腿算法模块初始化 ========== */
     DM_Motor_t  *joint_arr[4] = {hip_4, hip_3, hip_2, hip_1};
     DJI_Motor_t *wheel_arr[2] = {wheel_l, wheel_r};
+    ObsStateInit(&wheeledleg_state);
     observer_init(joint_arr, wheel_arr);
     kinematics_init();
     length_init();
     leg_coor_init();
     roll_init();
     gas_spring_init();
-    car_state_init();
+
     motion_control_init(chassis_cmd);
 } 
 bool remote_online = false;  /* 遥控器在线标志位, 由 BOARDCOMM 掉线判定 */
 
 bool all_online = true;
-
 void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
 {
     if (chassis_cmd == NULL) return;
@@ -228,7 +223,6 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
             if (wheels[i] != NULL) 
                 Motor_Stop((Motor_Base *)wheels[i]);
         }
-        car_state_reset();      /* 掉线: 回起立态, 恢复后重新起立 */
         march_displacement = 0.0f;   /* 掉线: 位移目标归零 */
         return;
     }
@@ -247,15 +241,13 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
     BSP_DWT_Delay(0.0002f); /* 200us */
     observer_update(joints, wheels);
     kinematics_calc();
-    car_state_update(); /* 起立/平衡判据 (运动学之后) */
-    length_control();
-
-    motion_control_update(chassis_cmd);
-   
-    leg_coor_control(); 
+    GetUpUpdate(&wheeledleg_state);
+    length_control(&wheeledleg_state);
+    motion_control_update(chassis_cmd,&wheeledleg_state);
+    leg_coor_control(1); 
     roll_control();
     gas_spring_calc(0);
-    VMC_calc();
+    VMC_calc(&wheeledleg_state);
 
     /* ---- VMC 力矩输出 ---- */
     const VMC *vmc = VMC_get(); 

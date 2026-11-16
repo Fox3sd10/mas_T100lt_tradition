@@ -4,6 +4,6 @@
 #include "solution_def.h"
 
 void motion_control_init(Chassis_Ctrl_Cmd_t *cmd);
-void motion_control_update(Chassis_Ctrl_Cmd_t *cmd);
+void motion_control_update(Chassis_Ctrl_Cmd_t *cmd, ObsState *obs_state);
 
 #endif // 

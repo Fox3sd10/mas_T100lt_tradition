@@ -60,7 +60,7 @@ void LQR_K_calc(float *K, float L_0)
    	K[11] =	K_p11[0]*L0_3 +	K_p11[1]*L0_2 +	K_p11[2]*L_0 +	K_p11[3];
 }
 
-void LQR_calc(float target_x, float target_dx)
+void LQR_calc(float target_x, float target_dx,ObsState *obs_state)
 {
     const fk *fk_left = kinematics_get_left();
     const fk *fk_right = kinematics_get_right();

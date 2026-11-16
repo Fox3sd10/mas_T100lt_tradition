@@ -4,7 +4,7 @@
 #include "solution_def.h"
 
 void leg_coor_init(void);
-void leg_coor_control(void);
+void leg_coor_control(uint8_t enable);
 const coordination *leg_coor_get(void);
 
 #endif

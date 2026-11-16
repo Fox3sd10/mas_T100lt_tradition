@@ -29,7 +29,7 @@ static VMC VMC_ctrl;
 
 
 
-void  VMC_calc()
+void  VMC_calc(ObsState *obs_state)
 {
     const Length       *le   = Length_get();
     const fk           *ki_L = kinematics_get_left();

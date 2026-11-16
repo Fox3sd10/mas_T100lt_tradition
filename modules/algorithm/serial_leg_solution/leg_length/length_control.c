@@ -37,7 +37,7 @@ void length_init()
     PIDInit(&pid_right, &pd_config);
 }
 
-void length_control ()
+void length_control (ObsState *obs_state)
 {
     const fk *fk_left = kinematics_get_left();
     const fk *fk_right = kinematics_get_right();

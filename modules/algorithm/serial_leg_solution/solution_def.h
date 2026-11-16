@@ -87,7 +87,12 @@ typedef struct
     float F_L_pid;
     float F_R_pid;//vmc解算之前再加和roll补偿和重力补偿，双腿协调同理
 } Length;
-
+typedef struct{
+    float left_leg_swing_set;
+    float right_leg_swing_set;
+    float left_leg_swing_out;
+    float right_leg_swing_out;
+} LegSwing;
 //roll补偿
 typedef struct
 {

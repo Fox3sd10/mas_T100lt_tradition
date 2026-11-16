@@ -3,7 +3,7 @@
 
 #include "solution_def.h"
 
-void VMC_calc();
+void VMC_calc(ObsState *obs_state);
 const VMC *VMC_get();
 
 #endif // !

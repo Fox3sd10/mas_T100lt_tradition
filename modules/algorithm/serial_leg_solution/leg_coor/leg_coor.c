@@ -27,13 +27,16 @@ void leg_coor_init(void)
     PIDInit(&leg_coor_pid, &config);
 }
 
-void leg_coor_control(void)
+void leg_coor_control(uint8_t enable)
 {
     const fk *fk_l = kinematics_get_left();
     const fk *fk_r = kinematics_get_right();
 
     float out = PIDCalculate(&leg_coor_pid, fk_l->theta, fk_r->theta);
-
+    if(!enable)
+    {
+        out = 0.0f;
+    }
     leg_coor_ctrl.Tp_L_coor =  out;
     leg_coor_ctrl.Tp_R_coor = -out;
 }

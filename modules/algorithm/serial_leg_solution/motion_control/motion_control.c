@@ -34,7 +34,7 @@ void motion_control_init(Chassis_Ctrl_Cmd_t *cmd)
     };
     PIDInit(&speed2torque_pid, &speed2torque_config);
 }
-void motion_control_update(Chassis_Ctrl_Cmd_t *cmd)
+void motion_control_update(Chassis_Ctrl_Cmd_t *cmd,ObsState *obs_state)
 {
     if (cmd == NULL) return;
    // const observer *obs = observer_get();
@@ -43,7 +43,7 @@ void motion_control_update(Chassis_Ctrl_Cmd_t *cmd)
     //cmd->turn_cmd_out=PIDCalculate(&speed2torque_pid, obs->dyaw, speed);
     cmd->turn_cmd_out=speed;
     march_displacement+=cmd->body_target_dx*0.002f;
-    LQR_calc(-march_displacement, 0.0f);
+    LQR_calc(-march_displacement, 0.0f, obs_state);
 
     
 }

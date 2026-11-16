@@ -4,7 +4,7 @@
 #include "solution_def.h"
 
 void LQR_K_calc(float *K, float L_0);
-void LQR_calc(float target_x, float target_dx);
+void LQR_calc(float target_x, float target_dx,ObsState *obs_state);
 const LQR *LQR_get(void);
 
 #endif // LQR_LEG_H
