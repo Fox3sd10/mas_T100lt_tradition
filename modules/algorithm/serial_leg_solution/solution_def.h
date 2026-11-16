@@ -37,6 +37,7 @@ typedef struct
     float roll;
     float droll;
     float yaw;
+    float dyaw;
     uint8_t initialized;
 } observer;
 
@@ -50,6 +51,8 @@ typedef struct
     float dphi_0;
     float theta;
     float dtheta;
+    float last_theta;
+    int theta_circle;
     float phi_2;
     float J_11;
     float J_12;
@@ -105,6 +108,13 @@ typedef struct
     float Fs_L;
     float Fs_R;
 } GasSpring;
+typedef struct
+{
+    float body_target_dx; /* 前后速度命令 m/s, 上推为正, ±2.0 */
+    float turn_cmd;       /* 转向设定角命令 (rad), CH4, 满推 ±0.15 (符号实车修正) */
+    float body_target_dy_out;
+    float turn_cmd_out;
+}  Chassis_Ctrl_Cmd_t;
 
 typedef struct{
     uint8_t GetUpState;

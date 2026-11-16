@@ -55,10 +55,22 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     // 8. 计算摆杆角度phi0
     float phi_0 = atan2f(YC, XC);
     out->phi_0 = phi_0;
-
+    float theta=-(PI/2.0f - phi_0 + pitch);
     // 9. 计算腿部摆动角度theta
-    out->theta = -(PI/2.0f - phi_0 + pitch);
-
+    if(theta-out->last_theta>PI*1.5)
+    {
+        out->theta_circle=out->theta_circle-1;
+    }
+    else if(out->last_theta-theta>PI*1.5)
+    {
+        out->theta_circle=out->theta_circle+1;
+    }
+    out->theta = theta + out->theta_circle*2.0f*PI;
+    /* 归一化到 [-PI, PI] */
+    while (out->theta > PI)  out->theta -= 2.0f*PI;
+    while (out->theta < -PI) out->theta += 2.0f*PI;
+    
+    out->last_theta = theta;   /* 必须存未补偿的原始角, 否则下次比较会混用两套坐标 */
     float sigma1=arm_sin_f32(phi_3-phi_2);
 	/* 数值保护: 共线奇异 sin(phi3-phi2)→0 时防除零 */
 	if (fabsf(sigma1) < KIN_EPS)

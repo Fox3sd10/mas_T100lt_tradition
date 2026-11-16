@@ -18,6 +18,7 @@
 #include "arm_math.h"
 #include "car_state.h"
 
+
 static VMC VMC_ctrl;
 // float F_L;
 // float F_R;
@@ -45,7 +46,7 @@ void  VMC_calc()
         // 正常平衡: 重力补偿 + 腿长PID + roll - 气弹簧, coor 全量
         F_L = ROBOT_MASS * 9.8f / 2.0f / arm_cos_f32(ki_L->theta) - rc->F_L_roll + le->F_L_pid - gs->Fs_L;
         F_R = ROBOT_MASS * 9.8f / 2.0f / arm_cos_f32(ki_R->theta) - rc->F_R_roll + le->F_R_pid - gs->Fs_R;
-        Tp_L = lqr->Tpl + coor->Tp_L_coor;
+        Tp_L = lqr->Tpl + coor->Tp_L_coor; 
         Tp_R = lqr->Tpr + coor->Tp_R_coor;
     }
     else

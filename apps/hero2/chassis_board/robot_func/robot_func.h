@@ -1,7 +1,7 @@
 #ifndef _ROBOT_FUNC_H_
 #define _ROBOT_FUNC_H_
 
-#include "hero2_def.h"
+#include "solution_def.h"
 
 /**
  * @brief 根据遥控器输入设置底盘控制命令

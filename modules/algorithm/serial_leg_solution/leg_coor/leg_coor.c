@@ -16,10 +16,10 @@ static PIDInstance  leg_coor_pid;
 void leg_coor_init(void)
 {
     PID_Init_Config_s config = {
-        .Kp            = 100.0f,                   /* N·m/rad */
-        .Ki            = 0.5f,                     /* 0.001/周期折算为 SI (÷dt) */
-        .Kd            = 0.016f,                   /* 8/周期折算为 SI (×dt), 误差微分 */
-        .MaxOut        = 50.0f,                    /* N·m */
+        .Kp            = 20.0f,                   /* N·m/rad */
+        .Ki            = 0.00f,                     /* 0.001/周期折算为 SI (÷dt) */
+        .Kd            = 0.06f,                   /* 8/周期折算为 SI (×dt), 误差微分 */
+        .MaxOut        = 30.0f,                    /* N·m */
         .DeadBand      = 0.0f,                     /* rad */
         .Improve       = PID_Trapezoid_Intergral | PID_Integral_Limit,  /* 梯形积分 + 积分限幅(须勾选才生效) */
         .IntegralLimit = 10.0f,                    /* N·m */

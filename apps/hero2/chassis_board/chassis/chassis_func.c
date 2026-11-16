@@ -49,7 +49,7 @@
 #include "motor_dji.h"
 #include "bsp_dwt.h"
 #include "user_lib.h"
-#include "module_boardcomm.h"
+#include"BOARDCOMM/module_boardcomm.h"
 
 #include "observer.h"
 #include "kinematics.h"
@@ -60,7 +60,7 @@
 #include "roll_control.h"
 #include "gas_spring.h"
 #include "VMC.h"
-
+#include"motion_control.h"
 #include <stdint.h>
 
 
@@ -68,16 +68,16 @@ static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
 static float march_displacement = 0.0f;   /* 位移目标斜坡 */
 
-static void target_update(float speed_cmd)
-{
-    /* 遥控位移目标: 通道值逐周期累加 (无界积分) */
-    march_displacement += speed_cmd * 0.002f;
-    LQR_calc(-march_displacement, 0.0f);
-}
+// static void target_update(float speed_cmd)
+// {
+//     /* 遥控位移目标: 通道值逐周期累加 (无界积分) */
+//     march_displacement += speed_cmd * 0.002f;
+//     LQR_calc(-march_displacement, 0.0f);
+// }
 
-void chassis_init(void) 
+void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd) 
 {
-    Module_BoardComm_Init();
+    /* BOARDCOMM 已在 MODULE_Init 中初始化, 此处不再重复注册 CAN 设备 */
 
     /* ========== DM8009 髋关节电机 x4 (CAN1, MIT模式) ========== */
     Motor_Init_Config_s dm_config = {
@@ -181,36 +181,29 @@ void chassis_init(void)
     roll_init();
     gas_spring_init();
     car_state_init();
-}
+    motion_control_init(chassis_cmd);
+} 
+bool remote_online = false;  /* 遥控器在线标志位, 由 BOARDCOMM 掉线判定 */
+
+bool all_online = true;
 
 void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
 {
     if (chassis_cmd == NULL) return;
 
-    /* ---- 板间通讯: 云台 → 底盘 (4 字节帧, 收到即覆盖本地遥控命令) ---- */
-    GimbalToChassis_cmd_t rx_cmd;
-    if (Module_BoardComm_Receive(&rx_cmd, sizeof(rx_cmd)))
-    {
-        chassis_cmd->body_target_dx = (float)rx_cmd.body_target_dx / 1000.0f;
-        chassis_cmd->turn_cmd       = (float)rx_cmd.turn_cmd / 1000.0f;
-    }
-
-    // 检查板间通信是否离线
     if (Module_BoardComm_Get_Offline_State() == STATE_OFFLINE)
     {
-        /* 安全模式: 命令归零, 保持当前姿态 */
-        chassis_cmd->body_target_dx = 0.0f;
-        chassis_cmd->turn_cmd       = 0.0f;
+         remote_online = false;
     }
-
-    /* ---- 安全检测 ---- */
- //   uint8_t remote_status = Module_Remote_get_offline_status();
-  //  bool remote_online = (remote_status != 0 && remote_status != 2);
+    else
+    {
+         remote_online = true;
+    }
 
     DM_Motor_t  *joints[4] = {hip_4, hip_3, hip_2, hip_1};
     DJI_Motor_t *wheels[2] = {wheel_l, wheel_r};
 
-    bool all_online = true;
+
      for (int i = 0; i < 4; i++) {
          if (joints[i] == NULL ||
              Module_Offline_get_device_status(joints[i]->base.offline_dev)) {
@@ -225,8 +218,8 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
             break;
         }
     }
-    if ( !all_online) {
-   // if (!remote_online || !all_online) {
+   // if ( !all_online) {
+    if (!remote_online || !all_online) {
         for (int i = 0; i < 4; i++) {
             if (joints[i] != NULL)
                 Motor_Stop((Motor_Base *)joints[i]);
@@ -257,37 +250,46 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
     car_state_update(); /* 起立/平衡判据 (运动学之后) */
     length_control();
 
-    target_update(chassis_cmd->body_target_dx);
-
-    leg_coor_control();
+    motion_control_update(chassis_cmd);
+   
+    leg_coor_control(); 
     roll_control();
     gas_spring_calc(0);
     VMC_calc();
 
     /* ---- VMC 力矩输出 ---- */
-         Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
-         Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
-         Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
-         Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
     const VMC *vmc = VMC_get(); 
-    if (vmc != NULL) {
-        // Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
-        // Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
-        // Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
-        // Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
-
-        // Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
-        // Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
-        // Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
-        // Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
-    }
     const LQR *lqr = LQR_get();
-    if (lqr != NULL) {
-        // Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
-        // Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
+    if ((vmc != NULL)||(lqr != NULL)) {
+            if(remote_online && all_online)
+            {
+                // Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
+                // Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
+                // Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
+                // Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
 
-        // Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
-        // Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL+chassis_cmd->turn_cmd_out);
+                // Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR+chassis_cmd->turn_cmd_out);
+
+                Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
+
+                Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
+
+            }else{
+                
+                Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
+
+                Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
+            }
     }
+
 }
 

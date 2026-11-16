@@ -1,9 +1,9 @@
 #ifndef _CHASSIS_FUNC_H_
 #define _CHASSIS_FUNC_H_
 
-#include "hero2_def.h"
+#include "solution_def.h"
 
-void chassis_init(void);
+void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd);
 
 void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd);
 
