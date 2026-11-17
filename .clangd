@@ -1,4 +1,5 @@
 CompileFlags:
+  CompilationDatabase: build/damiao_h7/Debug
   Add:
     - -mthumb
     - -mfloat-abi=hard
@@ -6,6 +7,8 @@ CompileFlags:
     - -ffreestanding
     - -fno-common
     - -fno-exceptions
+    # 旧索引库缺 leg_swing 的 -I, 显式补上
+    - -IC:/Users/Administrator.DESKTOP-6IALL21/Desktop/t100lt_27/t100lt_mas/mas_T100lt_tradition/mas_embedded_threadx/modules/algorithm/serial_leg_solution/leg_swing
 Completion:
   AllScopes: true
 InlayHints:

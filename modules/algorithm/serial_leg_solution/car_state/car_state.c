@@ -24,7 +24,7 @@ void ObsStateInit(ObsState *obs_state)
 }
 void GetUpUpdate(ObsState *obs_state)
 {
-    //规定状态1时，角度在-20°~80°之间，状态2时，角度在-20°~-60°之间，状态3时，角度为剩余的在空中的角度
+    //规定状态1时，角度在20°~80°之间，状态2时，角度在-20°~-60°之间，状态3时，角度为剩余的在空中的角度
     const fk *l = kinematics_get_left();
     const fk *r = kinematics_get_right();
     const observer *obs = observer_get();
@@ -34,7 +34,7 @@ void GetUpUpdate(ObsState *obs_state)
         {
             obs_state->GetUpState&=0xC0;//清除从倒地自启带来的前6位的值
 
-            if(l->theta<1.39&&l->theta>-0.34){
+            if(l->theta<1.39&&l->theta>0.3){
                 obs_state->GetUpState&=0x78;   //清左腿的状态顺带清倒地自救标志位
                 obs_state->GetUpState |= 0x01; //左腿状态1
             }
@@ -42,18 +42,24 @@ void GetUpUpdate(ObsState *obs_state)
                 obs_state->GetUpState&=0x78;//清左腿的状态
                 obs_state->GetUpState |= 0x02; //左腿状态2
             }
+            else if(l->theta<0.3&&l->theta>-0.3){
+                obs_state->GetUpState&=0x78;//清左腿的状态
+            }
             else{
                 obs_state->GetUpState&=0x78;//清左腿的状态
                 obs_state->GetUpState |= 0x04; //左腿状态3
             }
 
-            if(r->theta<1.39&&r->theta>-0.34){
+            if(r->theta<1.39&&r->theta>0.3){
                 obs_state->GetUpState&=0x47;   //清右腿的状态
                 obs_state->GetUpState |= 0x08; //右腿状态1
             }
             else if(r->theta<-0.34&&r->theta>-1.0){
                 obs_state->GetUpState&=0x47;//清右腿的状态
                 obs_state->GetUpState |= 0x10; //右腿状态2
+            }
+            else if(r->theta<0.3&&r->theta>-0.3){
+                obs_state->GetUpState&=0x47;//清右腿的状态
             }
             else{
                 obs_state->GetUpState&=0x47;//清右腿的状态

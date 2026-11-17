@@ -62,7 +62,7 @@
 #include "VMC.h"
 #include"motion_control.h"
 #include <stdint.h>
-
+#include"leg_swing.h"
 
 static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
@@ -176,7 +176,7 @@ void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd)
     leg_coor_init();
     roll_init();
     gas_spring_init();
-
+    leg_swing_init();
     motion_control_init(chassis_cmd);
 } 
 bool remote_online = false;  /* 遥控器在线标志位, 由 BOARDCOMM 掉线判定 */
@@ -189,6 +189,7 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
     if (Module_BoardComm_Get_Offline_State() == STATE_OFFLINE)
     {
          remote_online = false;
+         wheeledleg_state.GetUpState=0x00;
     }
     else
     {
@@ -243,6 +244,7 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
     kinematics_calc();
     GetUpUpdate(&wheeledleg_state);
     length_control(&wheeledleg_state);
+    leg_swing_control(&wheeledleg_state);
     motion_control_update(chassis_cmd,&wheeledleg_state);
     leg_coor_control(1); 
     roll_control();
@@ -255,21 +257,21 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
     if ((vmc != NULL)||(lqr != NULL)) {
             if(remote_online && all_online)
             {
-                // Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
-                // Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
-                // Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
-                // Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
+                 Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
+                Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
+                Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
+                 Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
 
-                // Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL+chassis_cmd->turn_cmd_out);
-                // Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR+chassis_cmd->turn_cmd_out);
+                Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL+chassis_cmd->turn_cmd_out);
+                Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR+chassis_cmd->turn_cmd_out);
 
-                Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
-                Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
-                Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
-                Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
 
-                Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
-                Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
+                // Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
 
             }else{
                 

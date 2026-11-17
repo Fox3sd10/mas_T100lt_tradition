@@ -42,7 +42,7 @@ void length_control (ObsState *obs_state)
     const fk *fk_left = kinematics_get_left();
     const fk *fk_right = kinematics_get_right();
 
-    if (car_state_get() == STATE_BALANCE)
+    if ((obs_state->GetUpState&0x40))
     {
         // 目标腿长 = 站立高度 0.155 / cos(θ), 随摆角更新
         float cos_l = arm_cos_f32(fk_left->theta);
@@ -51,16 +51,32 @@ void length_control (ObsState *obs_state)
         if (cos_r < LENGTH_COS_EPS) cos_r = LENGTH_COS_EPS;
         lenth_ctrl.target_length_L = 0.146f / cos_l;
         lenth_ctrl.target_length_R = 0.146f / cos_r;
+
+        lenth_ctrl.F_L_pid = PIDCalculate(&pid_left,  fk_left->L_0,  lenth_ctrl.target_length_L);
+        lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R);
     }
     else
     {
-        /* 起立: 固定目标腿长 0.13 */
-        lenth_ctrl.target_length_L = 0.13f;
-        lenth_ctrl.target_length_R = 0.13f;
+        if(obs_state->GetUpState&0x80){//倒地自启
+            lenth_ctrl.target_length_L=0.38;
+            lenth_ctrl.target_length_R=0.38;
+        }else{//非倒地自启  
+            if((obs_state->GetUpState&0x07)==0x04){
+                lenth_ctrl.target_length_L=0.38;
+            }else{
+                lenth_ctrl.target_length_L=0.138;
+            }
+            if(((obs_state->GetUpState>>3)&0x07)==0x04){
+                lenth_ctrl.target_length_R=0.38;
+            }else{
+                lenth_ctrl.target_length_R=0.138;
+            }
+        }
+        lenth_ctrl.F_L_pid = PIDCalculate(&pid_left,  fk_left->L_0,  lenth_ctrl.target_length_L)*0.75-5*fk_left->dL_0;
+        lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R)*0.75-5*fk_right->dL_0;
+         
     } 
 
-    lenth_ctrl.F_L_pid = PIDCalculate(&pid_left,  fk_left->L_0,  lenth_ctrl.target_length_L);
-    lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R);
 }
 
 const Length *Length_get()

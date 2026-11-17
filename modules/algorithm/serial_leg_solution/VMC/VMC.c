@@ -17,6 +17,7 @@
 #include "roll_control.h"
 #include "arm_math.h"
 #include "car_state.h"
+#include "leg_swing.h"
 
 
 static VMC VMC_ctrl;
@@ -28,7 +29,7 @@ static VMC VMC_ctrl;
 //float FPIDR;
 
 
-
+    float F_L, F_R, Tp_L, Tp_R;
 void  VMC_calc(ObsState *obs_state)
 {
     const Length       *le   = Length_get();
@@ -38,10 +39,12 @@ void  VMC_calc(ObsState *obs_state)
     const coordination *coor = leg_coor_get();
     const GasSpring    *gs   = gas_spring_get();
     const roll_compf   *rc   = roll_comf_get();
+    const LegSwing     *lw   = leg_swing_get();
 
-    float F_L, F_R, Tp_L, Tp_R;
 
-    if (car_state_get() == STATE_BALANCE)
+  //  float F_L, F_R, Tp_L, Tp_R;
+
+    if ((obs_state->GetUpState&0x40))
     {
         // 正常平衡: 重力补偿 + 腿长PID + roll - 气弹簧, coor 全量
         F_L = ROBOT_MASS * 9.8f / 2.0f / arm_cos_f32(ki_L->theta) - rc->F_L_roll + le->F_L_pid - gs->Fs_L;
@@ -51,11 +54,10 @@ void  VMC_calc(ObsState *obs_state)
     }
     else
     {
-        /* 起立: 无重力项, −5N 常数偏置, coor ×0.2 */
-        F_L = -rc->F_L_roll + le->F_L_pid - 5.0f - gs->Fs_L;
-        F_R = -rc->F_R_roll + le->F_R_pid - 5.0f - gs->Fs_R;
-        Tp_L = lqr->Tpl + 0.2f * coor->Tp_L_coor;
-        Tp_R = lqr->Tpr + 0.2f * coor->Tp_R_coor;
+        F_L = le->F_L_pid - gs->Fs_L;
+        F_R = le->F_R_pid - gs->Fs_R;
+        Tp_L = lw->left_leg_swing_out; 
+        Tp_R = lw->right_leg_swing_out; 
     }
 
     VMC_ctrl.T_1_L = ki_L->J_11 * F_L + ki_L->J_21 * Tp_L;
