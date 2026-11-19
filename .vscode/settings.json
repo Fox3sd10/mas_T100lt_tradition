@@ -20,10 +20,13 @@
         // 启用这项时，补全函数时，将会给参数提供占位符，键入后按 Tab 可以切换到下一占位符，乃至函数末
         "--function-arg-placeholders=false",
         // compelie_commands.json 文件的目录位置
-        "--compile-commands-dir=${workspaceFolder}/build",
+        "--compile-commands-dir=${workspaceFolder}/build/damiao_h7/Debug",
         "--query-driver=C:/user_program/circtemce/arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-arm-none-eabi/bin/arm-none-eabi-gcc.exe"  // ARM 工具链路径，到 arm-none-eabi-gcc.exe 即可
     ],
     "cortex-debug.variableUseNaturalFormat": true,
     "emberprobe.sampleFrequencyHz": 20,
+    // 统一无 BOM 的 UTF-8，避免保存时反复叠加 BOM 导致编译报 "expected ';' before 'typedef'"
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": false,
 }
 

@@ -63,7 +63,7 @@
 #include"motion_control.h"
 #include <stdint.h>
 #include"leg_swing.h"
-
+#include"hero2_def.h"
 static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
 static float march_displacement = 0.0f;   /* 位移目标斜坡 */
@@ -182,12 +182,23 @@ void chassis_init(Chassis_Ctrl_Cmd_t *chassis_cmd)
 bool remote_online = false;  /* 遥控器在线标志位, 由 BOARDCOMM 掉线判定 */
 
 bool all_online = true;
-void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
+float out111;
+int DM_enable_flag=0;
+void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd,GimbalToChassis_cmd_t *cmd)
 {
+    DM_enable_flag++;
+    if(DM_enable_flag==500){
+        Motor_DM_Cmd(hip_4,0xFC);
+        Motor_DM_Cmd(hip_1,0xFC);
+    }else if(DM_enable_flag==1000){
+        Motor_DM_Cmd(hip_2,0xFC);
+        Motor_DM_Cmd(hip_3,0xFC);
+        DM_enable_flag=0;
+    }
     if (chassis_cmd == NULL) return;
 
-    if (Module_BoardComm_Get_Offline_State() == STATE_OFFLINE)
-    {
+    if ((Module_BoardComm_Get_Offline_State() == STATE_OFFLINE)||cmd->reserved[0]==0)
+    {  
          remote_online = false;
          wheeledleg_state.GetUpState=0x00;
     }
@@ -262,17 +273,17 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
                 Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
                  Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
 
-                Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL+chassis_cmd->turn_cmd_out);
-                Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR+chassis_cmd->turn_cmd_out);
-
-                // Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
+                Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL-chassis_cmd->turn_cmd_out);
+                Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR-chassis_cmd->turn_cmd_out);
+                //  out111=chassis_cmd->turn_cmd_out;
+                // Motor_SetOutputTorque( (Motor_Base *)hip_4,  0.0f);
                 // Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
                 // Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
                 // Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
 
-                // Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
-                // Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
-
+                // Motor_SetOutputTorque((Motor_Base *)wheel_l,   0.0f);
+                // Motor_SetOutputTorque((Motor_Base  *)wheel_r,  0.0f);
+   
             }else{
                 
                 Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);

@@ -34,25 +34,19 @@ GimbalToChassis_cmd_t rx_cmd;
 #define T100lt_turn_speed    0.15f /* rad/s */
 
 int start_enable=0;
-int yaw_init_circle=0;
-int yaw_init_circle_pi=0;
+
 static void robot_control_task(ULONG thread_input)
 {
     while (1)
-    {
+    { 
         RemoteControlSet(&chassis_cmd);
     if (Module_BoardComm_Receive(&rx_cmd, sizeof(rx_cmd)))
     {
         chassis_cmd.body_target_dx = (float)rx_cmd.vx*T100lt_forward_speed / 100.0f;
-        chassis_cmd.turn_cmd       = (float)((rx_cmd.offset_angle+3183-(yaw_init_circle+yaw_init_circle_pi)*3146*2)) / 1000.0f;
+        chassis_cmd.turn_cmd       = (float)((rx_cmd.offset_angle-2628)) / 1000.0f;
+
     }
-    if(start_enable>1000){chassis_func(&chassis_cmd);}
-    if(start_enable<500){
-        yaw_init_circle=(rx_cmd.offset_angle+3183)/(3146*2);
-    if((rx_cmd.offset_angle+3183-yaw_init_circle*3146*2)>3146){yaw_init_circle_pi=1;}
-    else if((rx_cmd.offset_angle+3183-yaw_init_circle*3146*2)<-3146){yaw_init_circle_pi=-1;}
-    else{yaw_init_circle_pi=0;}
-    }
+    if(start_enable>1000){chassis_func(&chassis_cmd,&rx_cmd);}
         Motor_ControlAll(); 
         Motor_ApplyAll(); 
         start_enable++;

@@ -41,7 +41,12 @@ void motion_control_update(Chassis_Ctrl_Cmd_t *cmd,ObsState *obs_state)
     float speed=PIDCalculate(&angle2speed_pid, cmd->turn_cmd, 0);
 
     //cmd->turn_cmd_out=PIDCalculate(&speed2torque_pid, obs->dyaw, speed);
-    cmd->turn_cmd_out=speed;
+
+    if ((obs_state->GetUpState&0x40)){
+            cmd->turn_cmd_out=speed;
+    }else{
+         cmd->turn_cmd_out=0.0;
+    }
     march_displacement+=cmd->body_target_dx*0.002f;
     LQR_calc(-march_displacement, 0.0f, obs_state);
 

@@ -20,7 +20,7 @@ typedef struct
 } GimbalToChassis_cmd_t;
 _Static_assert(sizeof(GimbalToChassis_cmd_t) == 8, "GimbalToChassis_cmd_t must be 8 bytes");
 
-typedef struct
+typedef struct 
 {
     uint8_t  robot_color;      /* 机器人颜色 (0=红,1=蓝) */
     uint8_t  game_progress;    /* 比赛阶段 */

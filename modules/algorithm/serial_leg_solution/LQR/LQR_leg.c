@@ -76,8 +76,8 @@ void LQR_calc(float target_x, float target_dx,ObsState *obs_state)
     float dtheta_l = -fk_left->dtheta;
     float theta_r = -fk_right->theta;
     float dtheta_r = -fk_right->dtheta;
-    float x = -(obs->x_L + obs->x_R)/2.0f;
-    float dx = -(obs->dx_L + obs->dx_R) / 2.0f;
+    float x = -obs->x;
+    float dx = -obs->dx;
 
     if ((obs_state->GetUpState&0x40))
     {

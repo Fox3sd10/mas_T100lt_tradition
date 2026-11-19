@@ -16,7 +16,7 @@
 #define phi_1_offset 176.92f
 #define phi_4_offset 3.08f
 
-#define ROBOT_MASS 17.0f
+#define ROBOT_MASS 16.5f
 //观测器
 typedef struct
 {
@@ -32,6 +32,8 @@ typedef struct
     float dx_L;
     float x_R;
     float dx_R;
+    float x;
+    float dx;
     float pitch;
     float dpitch;
     float roll;

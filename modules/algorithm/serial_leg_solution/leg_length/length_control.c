@@ -49,8 +49,8 @@ void length_control (ObsState *obs_state)
         float cos_r = arm_cos_f32(fk_right->theta);
         if (cos_l < LENGTH_COS_EPS) cos_l = LENGTH_COS_EPS;
         if (cos_r < LENGTH_COS_EPS) cos_r = LENGTH_COS_EPS;
-        lenth_ctrl.target_length_L = 0.146f / cos_l;
-        lenth_ctrl.target_length_R = 0.146f / cos_r;
+        lenth_ctrl.target_length_L = 0.139f / cos_l;
+        lenth_ctrl.target_length_R = 0.139f / cos_r;
 
         lenth_ctrl.F_L_pid = PIDCalculate(&pid_left,  fk_left->L_0,  lenth_ctrl.target_length_L);
         lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R);

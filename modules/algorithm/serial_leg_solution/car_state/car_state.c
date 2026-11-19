@@ -28,37 +28,42 @@ void GetUpUpdate(ObsState *obs_state)
     const fk *l = kinematics_get_left();
     const fk *r = kinematics_get_right();
     const observer *obs = observer_get();
+    if((obs_state->GetUpState&0x40)){//运行时，疯车失能
+        if(l->theta >1.20||l->theta<-1.20||r->theta>1.20||r->theta<-1.20){
+            obs_state->GetUpState=0x00;
+        }
+    }
     if((obs_state->AllSwitchState & 0x01)&&(!(obs_state->GetUpState&0x40))) //起立使能位为1
     {
         if(obs->pitch>-1.0&&obs->pitch<1.0) //俯仰角在-60°~60°之间
         {
             obs_state->GetUpState&=0xC0;//清除从倒地自启带来的前6位的值
 
-            if(l->theta<1.39&&l->theta>0.3){
+            if(l->theta<1.39&&l->theta>0.32){
                 obs_state->GetUpState&=0x78;   //清左腿的状态顺带清倒地自救标志位
                 obs_state->GetUpState |= 0x01; //左腿状态1
             }
-            else if(l->theta<-0.34&&l->theta>-1.0){
+            else if(l->theta<-0.30&&l->theta>-1.0){
                 obs_state->GetUpState&=0x78;//清左腿的状态
                 obs_state->GetUpState |= 0x02; //左腿状态2
             }
-            else if(l->theta<0.3&&l->theta>-0.3){
+            else if(l->theta<0.32&&l->theta>-0.3){
                 obs_state->GetUpState&=0x78;//清左腿的状态
             }
-            else{
+            else{ 
                 obs_state->GetUpState&=0x78;//清左腿的状态
                 obs_state->GetUpState |= 0x04; //左腿状态3
             }
 
-            if(r->theta<1.39&&r->theta>0.3){
+            if(r->theta<1.39&&r->theta>0.32){
                 obs_state->GetUpState&=0x47;   //清右腿的状态
                 obs_state->GetUpState |= 0x08; //右腿状态1
             }
-            else if(r->theta<-0.34&&r->theta>-1.0){
+            else if(r->theta<-0.30&&r->theta>-1.0){
                 obs_state->GetUpState&=0x47;//清右腿的状态
                 obs_state->GetUpState |= 0x10; //右腿状态2
             }
-            else if(r->theta<0.3&&r->theta>-0.3){
+            else if(r->theta<0.32&&r->theta>-0.3){
                 obs_state->GetUpState&=0x47;//清右腿的状态
             }
             else{
@@ -66,7 +71,7 @@ void GetUpUpdate(ObsState *obs_state)
                 obs_state->GetUpState |= 0x20; //右腿状态3
             }
 
-             if(l->theta<0.3&&l->theta>-0.3&&r->theta<0.3&&r->theta>-0.3){
+             if(l->theta<0.32&&l->theta>-0.3&&r->theta<0.32&&r->theta>-0.3){
                 obs_state->GetUpState&=0x00; //清所有的标志位
                 obs_state->GetUpState|=0x40; //起立完成标志位为1
              }

@@ -50,8 +50,8 @@ void leg_swing_control(ObsState *obs_state)
                 }
             }else{
                 if((obs_state->GetUpState&0x07)==0x02 &&((obs_state->GetUpState>>3)&0x07)==0x02){
-                    leg_swing_ctrl.left_leg_swing_set=2.0;
-                    leg_swing_ctrl.right_leg_swing_set=0;
+                    leg_swing_ctrl.left_leg_swing_set=1.0;
+                    leg_swing_ctrl.right_leg_swing_set=1.0;
                 }else{
                     if((obs_state->GetUpState&0x07)==0x01){
                         leg_swing_ctrl.left_leg_swing_set=-2.0;
@@ -76,11 +76,18 @@ void leg_swing_control(ObsState *obs_state)
         leg_swing_ctrl.right_leg_swing_out=PIDCalculate(&right_swing_pid, fk_right->dtheta, leg_swing_ctrl.right_leg_swing_set); 
 
         if((obs_state->GetUpState&0x07)==0x01){
-            leg_swing_ctrl.left_leg_swing_out-=16*9.8 /2*fk_left->L_0*arm_sin_f32(fk_left->theta);
+            leg_swing_ctrl.left_leg_swing_out-=18*9.8 /2*fk_left->L_0*arm_sin_f32(fk_left->theta);
+        }else if((obs_state->GetUpState&0x07)==0x02){
+            leg_swing_ctrl.left_leg_swing_out-=18*9.8 /2*fk_left->L_0*arm_sin_f32(fk_left->theta);
         }
+
         if(((obs_state->GetUpState>>3)&0x07)==0x01){
-            leg_swing_ctrl.right_leg_swing_out-=16*9.8 /2*fk_right->L_0*arm_sin_f32(fk_right->theta);
+            leg_swing_ctrl.right_leg_swing_out-=18*9.8 /2*fk_right->L_0*arm_sin_f32(fk_right->theta);
+        }else if(((obs_state->GetUpState>>3)&0x07)==0x02){
+            leg_swing_ctrl.right_leg_swing_out-=18*9.8 /2*fk_right->L_0*arm_sin_f32(fk_right->theta);
+
         }
+
         
     }else{
         leg_swing_ctrl.left_leg_swing_out=0.0f;
